@@ -1,0 +1,6 @@
+@ChallengeBalearesGroup_HostAddress = http://localhost:5181
+
+GET {{ChallengeBalearesGroup_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
