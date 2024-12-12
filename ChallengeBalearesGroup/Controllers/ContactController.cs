@@ -2,6 +2,7 @@
 using ChallengeBalearesGroup.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Net;
@@ -27,12 +28,26 @@ namespace ChallengeBalearesGroup.Controllers
         }
 
 
+        [HttpPost("Update")]
+        public async Task<IActionResult> Update([FromForm] Contact contact, IFormFile? imagen)
+        {
+            var errores = new List<string>();
+            var result = await this.contactService.Update(contact, imagen, errores);
+
+            if (errores.Any())
+            {
+                return BadRequest(new { Errores = errores });
+            }
+
+            return Ok(result);
+        }
+
+
         [HttpPost("Filter")]
         public async Task<IEnumerable<ContactDTO>> Filter(int id, string? email = null, string? telefono = null, string? direccion = null)
         {
             return await this.contactService.Filter(id, email, telefono, direccion);
         }
-
 
 
         [HttpPost("GetAll")]

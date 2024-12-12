@@ -9,7 +9,8 @@ namespace ChallengeBalearesGroup.Repository
     public interface IContactRepository
     {
         Task<Contact> Create(Contact contact, IFormFile? imagen);
-        Task<IEnumerable<Contact>> Filter(int id, string email, string telefono, string direccion);
+        Task<Contact> Update(Contact contact, IFormFile? imagen);
+        Task<IEnumerable<Contact>> Filter(int? id, string? email, string? telefono, string? direccion);
         (Stream Imagen, string TipoContenido)? GetImage(string nombreArchivo);
     }
 
@@ -26,47 +27,60 @@ namespace ChallengeBalearesGroup.Repository
             _env = env;
         }
 
+
         public async Task<Contact> Create(Contact contact, IFormFile? imagen)
         {
             try
             {
                 if (imagen != null)
                 {
-                    // Definir la carpeta de almacenamiento
-                    string carpetaImagenes = Path.Combine(_env.WebRootPath, "contact");
-
-                    // Crear la carpeta si no existe
-                    if (!Directory.Exists(carpetaImagenes))
-                        Directory.CreateDirectory(carpetaImagenes);
-
-                    // Generar un nombre único para el archivo
-                    string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(imagen.FileName)}";
-                    string rutaCompleta = Path.Combine(carpetaImagenes, nombreArchivo);
-
-                    // Guardar el archivo en el sistema de archivos
-                    using (var stream = new FileStream(rutaCompleta, FileMode.Create))
-                    {
-                        await imagen.CopyToAsync(stream);
-                    }
-
-                    // Guardar solo el nombre del archivo en la base de datos
-                    contact.RutaImagen = nombreArchivo;
+                    // Guardar imagen y obtener el nombre del archivo
+                    contact.RutaImagen = await SaveImageAsync(imagen, "contact");
                 }
 
                 _context.Contact.Add(contact);
+                await _context.SaveChangesAsync();
 
-                int result = await _context.SaveChangesAsync();
+                return contact;
             }
             catch (Exception ex)
             {
                 log4net.Error("Error al crear el Contacto: ", ex);
                 throw;
             }
-
-            return contact;
         }
 
-        public async Task<IEnumerable<Contact>> Filter(int id, string? email, string? telefono, string? direccion)
+
+        public async Task<Contact> Update(Contact newContact, IFormFile? imagen)
+        {
+            try
+            {
+                if (imagen != null)
+                {
+                    // Guardar nueva imagen
+                    string nuevaImagen = await SaveImageAsync(imagen, "contact");
+
+                    // Eliminar imagen anterior si existe
+                    await DeleteExistingImageAsync(newContact.RutaImagen, "contact");
+
+                    // Actualizar la ruta de la imagen
+                    newContact.RutaImagen = nuevaImagen;
+                }
+
+                _context.Contact.Update(newContact);
+                await _context.SaveChangesAsync();
+
+                return newContact;
+            }
+            catch (Exception ex)
+            {
+                log4net.Error("Error al actualizar el contacto: ", ex);
+                throw;
+            }
+        }
+
+
+        public async Task<IEnumerable<Contact>> Filter(int? id, string? email, string? telefono, string? direccion)
         {
             IQueryable<Contact> query = _context.Contact;
 
@@ -95,6 +109,61 @@ namespace ChallengeBalearesGroup.Repository
             return contacts;
         }
 
+
+        private async Task<string> SaveImageAsync(IFormFile imagen, string folderName)
+        {
+            try
+            {
+                // Definir la ruta de la carpeta
+                string carpetaImagenes = Path.Combine(_env.WebRootPath, folderName);
+
+                // Crear la carpeta si no existe
+                if (!Directory.Exists(carpetaImagenes))
+                    Directory.CreateDirectory(carpetaImagenes);
+
+                // Generar un nombre único para el archivo
+                string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(imagen.FileName)}";
+                string rutaCompleta = Path.Combine(carpetaImagenes, nombreArchivo);
+
+                // Guardar el archivo en el sistema de archivos
+                using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                {
+                    await imagen.CopyToAsync(stream);
+                }
+
+                return nombreArchivo;
+            }
+            catch (Exception ex)
+            {
+                log4net.Error("Error al guardar la imagen: ", ex);
+                throw;
+            }
+        }
+
+
+        private async Task DeleteExistingImageAsync(string? rutaImagen, string folderName)
+        {
+            if (!string.IsNullOrEmpty(rutaImagen))
+            {
+                try
+                {
+                    string carpetaImagenes = Path.Combine(_env.WebRootPath, folderName);
+                    string rutaCompleta = Path.Combine(carpetaImagenes, rutaImagen);
+
+                    if (File.Exists(rutaCompleta))
+                    {
+                        File.Delete(rutaCompleta);
+                        await Task.CompletedTask;  // Simular operación asincrónica
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log4net.Error("Error al eliminar la imagen anterior del contacto: ", ex);
+                }
+            }
+        }
+
+
         public (Stream Imagen, string TipoContenido)? GetImage(string nombreArchivo)
         {
             string rutaImagen = Path.Combine(_env.WebRootPath, "contact", nombreArchivo);
@@ -108,6 +177,7 @@ namespace ChallengeBalearesGroup.Repository
             return (imagen, tipoContenido);
         }
 
+        
         private string ObtenerTipoContenido(string extension)
         {
             return extension.ToLower() switch
