@@ -1,26 +1,34 @@
 ﻿using ChallengeBalearesGroup.Models;
+using ChallengeBalearesGroup.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChallengeBalearesGroup.Services
 {
-    public class UserService
+    public interface IUserService
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IPasswordHasher<User> _passwordHasher;
+        Task<User> Register(User user, List<string> errores);
+    }
 
-        public UserService(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
+    public class UserService : IUserService
+    {
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IUserRepository _userRepository;
+
+        public UserService(ApplicationDbContext context, IPasswordHasher<User> passwordHasher, IUserRepository userRepository)
         {
-            _context = context;
             _passwordHasher = passwordHasher;
+            _userRepository = userRepository;
         }
 
-        public async Task<string> Register(User user)
+        public async Task<User> Register(User user, List<string> errores)
         {
-            var existingUser = await _context.User.FirstOrDefaultAsync(u => u.Username == user.Username || u.Correo == user.Correo);
+            var existingUser = await _userRepository.GetUser(user.Username, user.Correo);
             if (existingUser != null)
             {
-                return "Usuario o correo ya existe.";
+                errores.Add($"El usuario o el correo ya se encuentra registrado en el sistema.");
+                return null;
             }
 
             var userRegister = new User
@@ -32,10 +40,7 @@ namespace ChallengeBalearesGroup.Services
                 Password = _passwordHasher.HashPassword(null, user.Password)
             };
 
-            _context.User.Add(userRegister);
-            await _context.SaveChangesAsync();
-
-            return "Usuario registrado con éxito.";
+            return await _userRepository.Create(userRegister);
         }
     }
 }

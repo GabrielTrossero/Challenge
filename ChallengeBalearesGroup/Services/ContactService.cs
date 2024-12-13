@@ -1,13 +1,15 @@
 ﻿using ChallengeBalearesGroup.Models;
 using ChallengeBalearesGroup.Repository;
+using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
 using Volo.Abp;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChallengeBalearesGroup.Services
 {
     public interface IContactService
     {
-        Task<Contact> Create(Contact contact, IFormFile? imagen);
+        Task<Contact> Create(Contact contact, IFormFile? imagen, List<string> errores);
         Task<Contact> Update(Contact contact, IFormFile? imagen, List<string> errores);
         Task<IEnumerable<ContactDTO>> Filter(int? id, string? email, string? telefono, string? direccion);
         (Stream Imagen, string TipoContenido)? GetImage(string nombreArchivo);
@@ -16,24 +18,24 @@ namespace ChallengeBalearesGroup.Services
 
     public class ContactService : IContactService
     {
-        private readonly IContactRepository contactRepository;
+        private readonly IContactRepository _contactRepository;
 
 
         public ContactService(IContactRepository contactRepository)
         {
-            this.contactRepository = contactRepository;
+            _contactRepository = contactRepository;
         }
 
 
-        public async Task<Contact> Create(Contact contact, IFormFile? imagen)
+        public async Task<Contact> Create(Contact contact, IFormFile? imagen, List<string> errores)
         {
-            return await this.contactRepository.Create(contact, imagen);
+            return await _contactRepository.Create(contact, imagen);
         }
 
 
         public async Task<Contact> Update(Contact contact, IFormFile? imagen, List<string> errores)
         {
-            var contactos = await this.contactRepository.Filter(contact.Id, null, null, null);
+            var contactos = await _contactRepository.Filter(contact.Id, null, null, null);
 
             // Obtener el contato anterior
             var contactOld = contactos.FirstOrDefault();
@@ -52,16 +54,16 @@ namespace ChallengeBalearesGroup.Services
             contactOld.Telefono = contact.Telefono;
             contactOld.Direccion = contact.Direccion;
 
-            return await this.contactRepository.Update(contactOld, imagen);
+            return await _contactRepository.Update(contactOld, imagen);
         }
 
 
         public async Task<IEnumerable<ContactDTO>> Filter(int? id, string? email, string? telefono, string? direccion)
         {
-            IEnumerable<Contact> contacts = await this.contactRepository.Filter(id, email, telefono, direccion);
+            IEnumerable<Contact> contacts = await _contactRepository.Filter(id, email, telefono, direccion);
 
             // Usar el ContactMapper para transformar los contactos en DTOs
-            var contactDTOs = ContactMapper.ToDTOList(contacts, this.contactRepository);
+            var contactDTOs = ContactMapper.ToDTOList(contacts, _contactRepository);
 
             return contactDTOs;
         }
@@ -83,20 +85,20 @@ namespace ChallengeBalearesGroup.Services
             Expression<Func<Contact, TOrderKey>> orderBy)
         {
             // Obtener la lista de contactos desde el repositorio
-            IEnumerable<Contact> contacts = await this.contactRepository.Filter(id, email, telefono, direccion);
+            IEnumerable<Contact> contacts = await _contactRepository.Filter(id, email, telefono, direccion);
 
             // Ordenar usando la expresión lambda proporcionada
             var orderedContacts = contacts.AsQueryable().OrderBy(orderBy);
 
             // Usar el ContactMapper para transformar los contactos en DTOs
-            var contactDTOs = ContactMapper.ToDTOList(orderedContacts, this.contactRepository);
+            var contactDTOs = ContactMapper.ToDTOList(orderedContacts, _contactRepository);
 
             return contactDTOs;
         }
 
         public (Stream Imagen, string TipoContenido)? GetImage(string nombreArchivo)
         {
-            return this.contactRepository.GetImage(nombreArchivo);
+            return _contactRepository.GetImage(nombreArchivo);
         }
     }
 }

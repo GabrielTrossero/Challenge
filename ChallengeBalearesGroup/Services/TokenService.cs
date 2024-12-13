@@ -7,7 +7,11 @@ using ChallengeBalearesGroup.Models;
 
 namespace ChallengeBalearesGroup.Services
 {
-    public class TokenService
+    public interface ITokenService
+    {
+        string GenerateToken(User user);
+    }
+    public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
         private const int TokenExpiryMinutes = 20;

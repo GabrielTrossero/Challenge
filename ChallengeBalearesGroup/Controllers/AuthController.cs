@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Dynamic.Core.Tokenizer;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChallengeBalearesGroup.Controllers
 {
@@ -11,35 +13,38 @@ namespace ChallengeBalearesGroup.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserService userService;
-        private readonly AuthService authService;
+        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        public AuthController(UserService userService, AuthService authService)
+        public AuthController(IUserService userService, IAuthService authService)
         {
-            this.userService = userService;
-            this.authService = authService;
+            _userService = userService;
+            _authService = authService;
         }
 
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] User user)
         {
-            var result = await this.userService.Register(user);
-            if (result.Contains("éxito"))
+            var errores = new List<string>();
+            var result = await _userService.Register(user, errores);
+
+            if (errores.Any())
             {
-                return Ok(result);
+                return BadRequest(new { Errores = errores });
             }
 
-            return BadRequest(result);
+            return Ok(result);
         }
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] User user)
         {
-            var token = await this.authService.Login(user.Username, user.Password);
+            var errores = new List<string>();
+            var token = await _authService.Login(user, errores);
 
-            if (string.IsNullOrEmpty(token))
+            if (errores.Any())
             {
-                return Unauthorized("Error al generar el token.");
+                return Unauthorized(new { Errores = errores });
             }
 
             return Ok(token);
@@ -48,7 +53,14 @@ namespace ChallengeBalearesGroup.Controllers
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout([FromBody] User user)
         {
-            await this.authService.Logout(user.Username);
+            var errores = new List<string>();
+            await _authService.Logout(user, errores);
+
+            if (errores.Any())
+            {
+                return BadRequest(new { Errores = errores });
+            }
+
             return Ok("Cierre de sesión exitoso.");
         }
     }
