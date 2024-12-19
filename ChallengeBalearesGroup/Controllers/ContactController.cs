@@ -16,6 +16,7 @@ namespace ChallengeBalearesGroup.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ContactController : ControllerBase
     {
         private readonly IContactService _contactService;
