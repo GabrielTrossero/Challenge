@@ -71,7 +71,7 @@ namespace ChallengeBalearesGroup.Services
             IEnumerable<Contact> contacts = await _contactRepository.Filter(id, email, telefono, direccion);
 
             // Usar el ContactMapper para transformar los contactos en DTOs
-            var contactDTOs = ContactMapper.ToDTOList(contacts, _contactRepository);
+            var contactDTOs = ContactMapper.MapContactToContactDTO(contacts, _contactRepository);
 
             return contactDTOs;
         }
@@ -99,7 +99,7 @@ namespace ChallengeBalearesGroup.Services
             var orderedContacts = contacts.AsQueryable().OrderBy(orderBy);
 
             // Usar el ContactMapper para transformar los contactos en DTOs
-            var contactDTOs = ContactMapper.ToDTOList(orderedContacts, _contactRepository);
+            var contactDTOs = ContactMapper.MapContactToContactDTO(orderedContacts, _contactRepository);
 
             return contactDTOs;
         }

@@ -5,7 +5,7 @@ namespace ChallengeBalearesGroup.Models.Mappers
 {
     public class ContactMapper
     {
-        public static ContactDTO ToDTO(Contact contact, IContactRepository contactRepository)
+        public static ContactDTO MapContactToContactDTO(Contact contact, IContactRepository contactRepository)
         {
             var contactDTO = new ContactDTO
             {
@@ -38,9 +38,9 @@ namespace ChallengeBalearesGroup.Models.Mappers
             return contactDTO;
         }
 
-        public static IEnumerable<ContactDTO> ToDTOList(IEnumerable<Contact> contacts, IContactRepository contactRepository)
+        public static IEnumerable<ContactDTO> MapContactToContactDTO(IEnumerable<Contact> contacts, IContactRepository contactRepository)
         {
-            return contacts.Select(contact => ToDTO(contact, contactRepository));
+            return contacts.Select(contact => MapContactToContactDTO(contact, contactRepository));
         }
 
 
