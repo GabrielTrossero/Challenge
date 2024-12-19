@@ -35,6 +35,12 @@ namespace ChallengeBalearesGroup.Services
 
         public async Task<Contact> Update(Contact contact, IFormFile? imagen, List<string> errores)
         {
+            if(contact.Id <= 0)
+            {
+                errores.Add($"El Contacto no cuenta con Id.");
+                return null;
+            }
+
             var contactos = await _contactRepository.Filter(contact.Id, null, null, null);
 
             // Obtener el contato anterior
