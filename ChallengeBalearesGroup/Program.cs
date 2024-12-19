@@ -8,8 +8,32 @@ using ChallengeBalearesGroup.Repository;
 using ChallengeBalearesGroup.Services;
 using ChallengeBalearesGroup.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Agregar Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Mi API BalearesGroup",
+        Version = "v1",
+        Description = "API para gestionar Usuarios y Contactos",
+        Contact = new OpenApiContact
+        {
+            Name = "Gabrel Trossero",
+            Email = "gabrieltrosserogetr@gmail.com"
+        }
+    });
+
+    // Incluye los comentarios XML generados durante la compilación
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+});
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -57,11 +81,15 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configurar Swagger en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mi API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
 app.UseStaticFiles(); // Esto es importante para acceder a archivos en "wwwroot"
