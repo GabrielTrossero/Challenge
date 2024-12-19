@@ -1,4 +1,6 @@
 ﻿using ChallengeBalearesGroup.Models;
+using ChallengeBalearesGroup.Models.DTO;
+using ChallengeBalearesGroup.Models.Mappers;
 using ChallengeBalearesGroup.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -23,9 +25,10 @@ namespace ChallengeBalearesGroup.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDTO userRegisterDTO)
         {
             var errores = new List<string>();
+            var user = UserMapper.MapUserRegisterDTOToUser(userRegisterDTO);
             var result = await _userService.Register(user, errores);
 
             if (errores.Any())
@@ -37,9 +40,10 @@ namespace ChallengeBalearesGroup.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public async Task<IActionResult> Login([FromBody] UserLoginDTO userLoginDTO)
         {
             var errores = new List<string>();
+            var user = UserMapper.MapUserLoginDTOToUser(userLoginDTO);
             var token = await _authService.Login(user, errores);
 
             if (errores.Any())
@@ -51,9 +55,10 @@ namespace ChallengeBalearesGroup.Controllers
         }
 
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout([FromBody] User user)
+        public async Task<IActionResult> Logout([FromBody] UserLogoutDTO userLogoutDTO)
         {
             var errores = new List<string>();
+            var user = UserMapper.MapUserLogoutDTOToUser(userLogoutDTO);
             await _authService.Logout(user, errores);
 
             if (errores.Any())

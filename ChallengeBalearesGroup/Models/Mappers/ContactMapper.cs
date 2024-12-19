@@ -1,7 +1,7 @@
-﻿using ChallengeBalearesGroup.Models;
+﻿using ChallengeBalearesGroup.Models.DTO;
 using ChallengeBalearesGroup.Repository;
 
-namespace ChallengeBalearesGroup.Services
+namespace ChallengeBalearesGroup.Models.Mappers
 {
     public class ContactMapper
     {

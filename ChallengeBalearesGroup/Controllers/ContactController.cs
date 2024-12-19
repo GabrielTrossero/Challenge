@@ -1,4 +1,5 @@
 ﻿using ChallengeBalearesGroup.Models;
+using ChallengeBalearesGroup.Models.DTO;
 using ChallengeBalearesGroup.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

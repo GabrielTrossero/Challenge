@@ -1,4 +1,4 @@
-﻿namespace ChallengeBalearesGroup.Models
+﻿namespace ChallengeBalearesGroup.Models.DTO
 {
     public class ContactDTO
     {

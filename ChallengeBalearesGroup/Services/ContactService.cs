@@ -1,4 +1,6 @@
 ﻿using ChallengeBalearesGroup.Models;
+using ChallengeBalearesGroup.Models.DTO;
+using ChallengeBalearesGroup.Models.Mappers;
 using ChallengeBalearesGroup.Repository;
 using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
